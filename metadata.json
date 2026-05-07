@@ -1,0 +1,15 @@
+{
+  "name": "Smart Tours & Travel",
+  "description": "Modern travel management platform with AI-based recommendations, interactive booking, and real-time travel assistance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "AI Recommendations",
+    "Real-time Booking",
+    "Interactive Maps",
+    "Admin Dashboard"
+  ]
+}

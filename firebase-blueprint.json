@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "preferences": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "TourPackage": {
+      "title": "Tour Package",
+      "description": "A travel package offered by the system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "location": { "type": "string" },
+        "duration": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "highlights": { "type": "array", "items": { "type": "string" } },
+        "itinerary": { "type": "array", "items": { "type": "object" } },
+        "rating": { "type": "number" },
+        "category": { "type": "string" },
+        "isFeatured": { "type": "boolean" }
+      },
+      "required": ["title", "description", "price", "location"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A booking made by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "packageId": { "type": "string" },
+        "packageName": { "type": "string" },
+        "travelDate": { "type": "string", "format": "date" },
+        "guests": { "type": "integer" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled", "completed"] },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "packageId", "status"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment record for a booking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "method": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookingId", "userId", "amount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/tour_packages/{packageId}": {
+      "schema": "TourPackage",
+      "description": "Tour packages"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Tour bookings"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Payment records"
+    }
+  }
+}
