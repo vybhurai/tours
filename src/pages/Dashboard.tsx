@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
   BarChart3, 
@@ -17,9 +18,8 @@ import {
   Users,
   Leaf
 } from 'lucide-react';
-import { auth, db } from '@/src/lib/firebase';
+import { db } from '@/src/lib/firebase';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getRecommendations, generateTripPlan } from '@/src/lib/ai';
 
 export const Dashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -40,15 +41,14 @@ export const Dashboard = () => {
   const [generatedItinerary, setGeneratedItinerary] = useState<any>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currUser) => {
-      if (currUser) {
-        setUser(currUser);
-        fetchDashboardData(currUser.uid);
-      } else {
-        setIsLoading(false);
-      }
-    });
-    return () => unsubscribe();
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      fetchDashboardData(userData.uid || userData.username); // Fallback if uid missing
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleGenerateItinerary = async () => {
@@ -117,7 +117,7 @@ export const Dashboard = () => {
         </div>
         <h2 className="text-2xl font-bold mb-2">Login Required</h2>
         <p className="text-slate-500 mb-6">Please login to view your personal dashboard and bookings.</p>
-        <Button className="travel-gradient w-full rounded-full">Sign In with Google</Button>
+        <Button className="travel-gradient w-full rounded-full" onClick={() => navigate('/')}>Return to Login</Button>
       </div>
     </div>
   );
@@ -132,9 +132,9 @@ export const Dashboard = () => {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 to-teal-400 opacity-50" />
               <Avatar className="h-24 w-24 mx-auto mb-6 border-4 border-white/20 shadow-xl group-hover:scale-105 transition-transform duration-500">
                 <AvatarImage src={user?.photoURL} />
-                <AvatarFallback className="bg-sky-500 text-white font-bold text-2xl">{user?.displayName?.[0]}</AvatarFallback>
+                <AvatarFallback className="bg-sky-500 text-white font-bold text-2xl">{user?.displayName?.[0] || user?.username?.[0]?.toUpperCase()}</AvatarFallback>
               </Avatar>
-              <h3 className="font-bold text-xl dark:text-white tracking-tight leading-tight mb-1">{user?.displayName}</h3>
+              <h3 className="font-bold text-xl dark:text-white tracking-tight leading-tight mb-1">{user?.displayName || user?.username}</h3>
               <p className="text-[10px] text-sky-400 font-bold uppercase tracking-[0.2em] mb-6">Gold Member</p>
               <Button variant="outline" size="sm" className="w-full rounded-2xl border-slate-200 dark:border-white/10 text-xs font-bold py-5 hover:bg-sky-500 hover:text-white transition-all">Edit Profile</Button>
             </div>

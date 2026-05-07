@@ -4,7 +4,7 @@ import { CheckCircle2, Home, CreditCard, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'motion/react';
-import { db } from '@/src/lib/firebase';
+import { db, handleFirestoreError, OperationType } from '@/src/lib/firebase';
 import { updateDoc, doc } from 'firebase/firestore';
 
 export const PaymentSuccess = () => {
@@ -24,7 +24,7 @@ export const PaymentSuccess = () => {
         status: 'confirmed'
       });
     } catch (error) {
-      console.error(error);
+      handleFirestoreError(error, OperationType.WRITE, `bookings/${bookingId}`);
     }
   };
 

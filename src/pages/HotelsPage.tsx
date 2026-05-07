@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { auth, db } from '@/src/lib/firebase';
+import { db } from '@/src/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,10 +35,13 @@ export const HotelsPage = () => {
   };
 
   const handleBooking = async () => {
-    if (!auth.currentUser) {
+    const savedUser = localStorage.getItem('currentUser');
+    if (!savedUser) {
       toast.error('Please login to book a hotel');
       return;
     }
+
+    const currUser = JSON.parse(savedUser);
 
     if (!checkIn || !checkOut) {
       toast.error('Please select check-in and check-out dates');
@@ -48,8 +51,8 @@ export const HotelsPage = () => {
     try {
       const total = calculateTotal();
       await addDoc(collection(db, 'bookings'), {
-        userId: auth.currentUser.uid,
-        userName: auth.currentUser.displayName,
+        userId: currUser.uid || currUser.username,
+        userName: currUser.displayName || currUser.username,
         packageId: selectedHotel.id,
         packageName: selectedHotel.name,
         type: 'hotel',

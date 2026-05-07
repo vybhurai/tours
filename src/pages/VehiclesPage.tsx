@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { auth, db } from '@/src/lib/firebase';
+import { db } from '@/src/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,10 +34,13 @@ export const VehiclesPage = () => {
   };
 
   const handleBooking = async () => {
-    if (!auth.currentUser) {
+    const savedUser = localStorage.getItem('currentUser');
+    if (!savedUser) {
       toast.error('Please login to reserve a vehicle');
       return;
     }
+
+    const currUser = JSON.parse(savedUser);
 
     if (!startDate || !endDate) {
       toast.error('Please select pickup and return dates');
@@ -47,8 +50,8 @@ export const VehiclesPage = () => {
     try {
       const total = calculateTotal();
       await addDoc(collection(db, 'bookings'), {
-        userId: auth.currentUser.uid,
-        userName: auth.currentUser.displayName,
+        userId: currUser.uid || currUser.username,
+        userName: currUser.displayName || currUser.username,
         packageId: selectedVehicle.id,
         packageName: selectedVehicle.name,
         type: 'vehicle',

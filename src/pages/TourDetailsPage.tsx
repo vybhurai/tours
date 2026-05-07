@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { auth, db } from '@/src/lib/firebase';
+import { db } from '@/src/lib/firebase';
 import { doc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { MapComponent } from '@/src/components/MapComponent';
@@ -135,10 +135,13 @@ export const TourDetailsPage = () => {
   };
 
   const handleBooking = async () => {
-    if (!auth.currentUser) {
+    const savedUser = localStorage.getItem('currentUser');
+    if (!savedUser) {
       toast.error('Please login to book a tour');
       return;
     }
+
+    const currUser = JSON.parse(savedUser);
 
     if (!travelDate) {
       toast.error('Please select a travel date');
@@ -147,8 +150,8 @@ export const TourDetailsPage = () => {
 
     try {
       const bookingData = {
-        userId: auth.currentUser.uid,
-        userName: auth.currentUser.displayName,
+        userId: currUser.uid || currUser.username,
+        userName: currUser.displayName || currUser.username,
         packageId: tour.id,
         packageName: tour.title,
         guests: guests,
