@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getRecommendations } from '@/src/lib/ai';
+import { getRecommendations, generateTripPlan } from '@/src/lib/ai';
 
 export const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -50,20 +50,19 @@ export const Dashboard = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleGenerateItinerary = () => {
+  const handleGenerateItinerary = async () => {
+    if (!plannerInput.trim()) return;
     setIsPlanning(true);
-    // Simulate AI Generation
-    setTimeout(() => {
-      setGeneratedItinerary({
-        destination: plannerInput || 'Bali, Indonesia',
-        days: [
-          { day: 1, title: 'Arrival & Beach Sunset', activities: ['Check-in at Uluwatu', 'Sunset at Single Fin', 'Seafood Dinner'] },
-          { day: 2, title: 'Cultural Exploration', activities: ['Uluwatu Temple Visit', 'Kecak Fire Dance', 'Local Craft Market'] },
-          { day: 3, title: 'Water Activities', activities: ['Surfing Lessons', 'Snorkeling at Blue Lagoon', 'Beach Club Chill'] },
-        ]
-      });
+    try {
+      const plan = await generateTripPlan(plannerInput);
+      if (plan) {
+        setGeneratedItinerary(plan);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
       setIsPlanning(false);
-    }, 2000);
+    }
   };
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();

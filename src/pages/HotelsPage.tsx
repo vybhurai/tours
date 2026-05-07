@@ -128,14 +128,16 @@ export const HotelsPage = () => {
                       <p className="text-3xl font-bold text-white tracking-tighter">${hotel.price}<span className="text-sm font-normal opacity-40">/night</span></p>
                     </div>
                     <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          onClick={() => setSelectedHotel(hotel)}
-                          className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn"
-                        >
-                          Book Stay <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
-                        </Button>
-                      </DialogTrigger>
+                      <DialogTrigger
+                        render={
+                          <Button 
+                            className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn"
+                          >
+                            Book Stay <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+                          </Button>
+                        }
+                        onClick={() => setSelectedHotel(hotel)}
+                      />
                       <DialogContent className="sm:max-w-md bg-slate-900 border-white/10 text-white rounded-[2rem]">
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold tracking-tight">Reserve {hotel.name}</DialogTitle>

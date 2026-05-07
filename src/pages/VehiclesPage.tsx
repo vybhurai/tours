@@ -139,14 +139,16 @@ export const VehiclesPage = () => {
                       <p className="text-3xl font-bold text-white tracking-tighter">${vehicle.price}</p>
                     </div>
                     <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          onClick={() => setSelectedVehicle(vehicle)}
-                          className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn"
-                        >
-                          Reserve <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
-                        </Button>
-                      </DialogTrigger>
+                      <DialogTrigger
+                        render={
+                          <Button 
+                            className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn"
+                          >
+                            Reserve <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+                          </Button>
+                        }
+                        onClick={() => setSelectedVehicle(vehicle)}
+                      />
                       <DialogContent className="sm:max-w-md bg-slate-900 border-white/10 text-white rounded-[2rem]">
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold tracking-tight">Reserve {vehicle.name}</DialogTitle>

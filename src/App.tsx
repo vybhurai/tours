@@ -16,6 +16,7 @@ import { ThemeProvider } from 'next-themes';
 
 function App() {
   return (
+    // @ts-ignore
     <ThemeProvider attribute="class" defaultTheme="dark">
       <Router>
         <div className="flex flex-col min-h-screen bg-white dark:gradient-bg text-slate-900 dark:text-white transition-colors duration-300">

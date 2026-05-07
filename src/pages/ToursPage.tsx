@@ -31,7 +31,7 @@ export const ToursPage = () => {
   const fetchTours = async () => {
     setIsLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, 'tours'));
+      const querySnapshot = await getDocs(collection(db, 'tour_packages'));
       const tourData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
