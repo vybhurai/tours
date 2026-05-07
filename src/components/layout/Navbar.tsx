@@ -16,48 +16,81 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
+import { toast } from 'sonner';
+
 export const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setIsAdmin(userDoc.data().role === 'admin');
+      try {
+        setUser(user);
+        if (user) {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            setIsAdmin(userDoc.data().role === 'admin');
+          } else {
+            // New user registration
+            const userData = {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              role: 'user',
+              createdAt: new Date().toISOString()
+            };
+            await setDoc(userDocRef, userData);
+            setIsAdmin(false);
+          }
         } else {
-          // New user
-          await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            role: 'user',
-            createdAt: new Date().toISOString()
-          });
+          setIsAdmin(false);
         }
-      } else {
-        setIsAdmin(false);
+      } catch (error) {
+        console.error("Auth State Error:", error);
+        toast.error("Failed to sync user data");
+      } finally {
+        setIsLoading(false);
       }
     });
     return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
+    try {
+      await signOut(auth);
+      toast.success("Logged out successfully");
+      navigate('/');
+    } catch (error) {
+      toast.error("Failed to logout");
+    }
   };
 
   const handleLogin = async () => {
+    console.log("Login button clicked");
+    toast.info("Opening Google sign-in...");
     try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error(error);
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) {
+        console.log("Login successful:", result.user.email);
+        toast.success(`Welcome, ${result.user.displayName}!`);
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      if (error.code === 'auth/popup-blocked') {
+        toast.error("Please allow popups to sign in");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // User closed the popup, don't show error
+        console.log("Popup cancelled by user");
+      } else {
+        toast.error("Failed to login: " + (error.message || "Unknown error"));
+      }
     }
   };
 

@@ -155,7 +155,13 @@ export const ToursPage = () => {
                     max={5000} 
                     step={100}
                     className="py-4"
-                    onValueChange={setPriceRange}
+                    onValueChange={(val) => {
+                      if (Array.isArray(val)) {
+                        setPriceRange(val);
+                      } else if (typeof val === 'number') {
+                        setPriceRange([0, val]);
+                      }
+                    }}
                   />
                 </div>
 
