@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Home, CreditCard, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { db } from '@/src/lib/firebase';
 import { updateDoc, doc } from 'firebase/firestore';
 

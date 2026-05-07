@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plane, User, LogOut, Menu, X, ShieldAlert, Sparkles, Compass } from 'lucide-react';
+import { Plane, User, LogOut, Menu, X, ShieldAlert, Sparkles, Compass, Sun, Moon, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { auth, googleProvider } from '@/src/lib/firebase';
-import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/src/lib/firebase';
 import {
@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { toast } from 'sonner';
@@ -73,24 +72,45 @@ export const Navbar = () => {
 
   const handleLogin = async () => {
     console.log("Login button clicked");
-    toast.info("Opening Google sign-in...");
+    setIsLoading(true);
+    const toastId = toast.loading("Connecting to Google Secure Auth...");
+    
     try {
+      // Force account selection to avoid "ose error" (closed popup issues)
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+      
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
         console.log("Login successful:", result.user.email);
-        toast.success(`Welcome, ${result.user.displayName}!`);
+        toast.success(`Welcome back, ${result.user.displayName}!`, { id: toastId });
         navigate('/dashboard');
       }
     } catch (error: any) {
-      console.error("Login Error:", error);
+      console.error("Detailed Login Error:", error);
+      setIsLoading(false);
+      
+      let errorMessage = "Login failed. Please try again.";
+      
       if (error.code === 'auth/popup-blocked') {
-        toast.error("Please allow popups to sign in");
+        errorMessage = "Sign-in popup was blocked. Please allow popups for this site in your browser settings.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "The authentication window was closed before completion.";
       } else if (error.code === 'auth/cancelled-popup-request') {
-        // User closed the popup, don't show error
-        console.log("Popup cancelled by user");
+        errorMessage = "Authentication request was cancelled.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized. Redirecting to official app...";
+        setTimeout(() => window.location.reload(), 2000);
+      } else if (error.code === 'auth/operation-not-supported-in-this-environment') {
+        errorMessage = "Authentication is restricted in this frame. Please open the app in a new tab using the top-right button.";
+      } else if (error.message?.includes('network')) {
+        errorMessage = "Network error detected. Check your internet connection.";
       } else {
-        toast.error("Failed to login: " + (error.message || "Unknown error"));
+        errorMessage = error.message || "An unexpected error occurred during login.";
       }
+      
+      toast.error(errorMessage, { id: toastId, duration: 5000 });
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { 
   BarChart3, 
   BookMarked, 
@@ -220,6 +220,52 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Travel DNA - Unique Feature */}
+                  <Card className="lg:col-span-2 border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-8">
+                        <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400">
+                           <Sparkles size={20} />
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-white tracking-tight leading-none">Travel DNA</h4>
+                          <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mt-1">AI Personality Profile</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        {[
+                          { label: 'Adventure', value: 85, color: 'bg-sky-500' },
+                          { label: 'Culture', value: 42, color: 'bg-teal-500' },
+                          { label: 'Luxury', value: 68, color: 'bg-amber-500' },
+                          { label: 'Serenity', value: 25, color: 'bg-rose-500' },
+                        ].map((dna, i) => (
+                          <div key={i} className="space-y-2">
+                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/60">
+                                <span>{dna.label}</span>
+                                <span>{dna.value}%</span>
+                             </div>
+                             <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                               <motion.div 
+                                 initial={{ width: 0 }}
+                                 whileInView={{ width: `${dna.value}%` }}
+                                 transition={{ duration: 1.5, delay: i * 0.1, ease: "easeOut" }}
+                                 className={`h-full ${dna.color} shadow-[0_0_15px_rgba(14,165,233,0.3)]`} 
+                               />
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-10 p-6 bg-white/5 rounded-[2rem] border border-white/10">
+                        <p className="text-xs text-white/60 italic font-light leading-relaxed">
+                          "You're a <span className="text-sky-400 font-bold">High-Octane Explorer</span> with a taste for refined summits. We suggest focusing on the Swiss Alps expedition next."
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
                   {/* Recent Bookings */}
                   <Card className="lg:col-span-3 border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-2xl">
                     <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">

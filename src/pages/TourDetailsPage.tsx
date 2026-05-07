@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { MapPin, Calendar, Users, Star, ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Heart, Share2, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -273,7 +273,28 @@ export const TourDetailsPage = () => {
                      </div>
                   </div>
 
-                  {tour.itinerary && (
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400 mb-8 font-mono">Nearby Curated Attractions</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                          { name: 'Hidden Waterfall', dist: '1.2 km', type: 'Nature' },
+                          { name: 'Ancient Temple', dist: '0.8 km', type: 'Culture' },
+                          { name: 'Local Art Market', dist: '2.5 km', type: 'Shopping' }
+                        ].map((place, i) => (
+                          <div key={i} className="group cursor-pointer">
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all">
+                              <h5 className="font-bold text-white mb-1 group-hover:text-sky-400">{place.name}</h5>
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] text-white/40 uppercase font-black">{place.type}</span>
+                                <span className="text-[10px] text-sky-400 font-bold">{place.dist}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {tour.itinerary && (
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400 mb-8 font-mono">Detailed Itinerary</p>
                       <div className="space-y-4">
