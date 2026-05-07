@@ -14,7 +14,8 @@ import {
   History,
   Plane,
   Sparkles,
-  Users
+  Users,
+  Leaf
 } from 'lucide-react';
 import { auth, db } from '@/src/lib/firebase';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
@@ -100,6 +101,14 @@ export const Dashboard = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === 'confirmed') return 'bg-teal-500/20 text-teal-400 border-none';
+    if (s === 'pending') return 'bg-amber-500/20 text-amber-400 border-none';
+    if (s === 'cancelled' || s === 'failed') return 'bg-rose-500/20 text-rose-400 border-none';
+    return 'bg-slate-500/20 text-slate-400 border-none';
+  };
+
   if (!user && !isLoading) return (
     <div className="pt-24 min-h-screen flex items-center justify-center">
       <div className="text-center p-8 glass rounded-3xl max-w-md w-full">
@@ -175,36 +184,38 @@ export const Dashboard = () => {
 
             {activeTab === 'Overview' && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                       <div className="absolute -top-4 -right-4 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-all" />
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="p-3 bg-sky-500/20 rounded-2xl text-sky-400">
-                           <Plane size={24} />
-                        </div>
+                      <div className="flex items-center gap-4 mb-6 text-sky-400">
+                        <Plane size={24} />
                       </div>
-                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Total Trips</p>
-                      <h4 className="text-4xl font-bold text-white tracking-tighter">12</h4>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Elite Expeditions</p>
+                      <h4 className="text-4xl font-bold text-white tracking-tighter">{recentBookings.length}</h4>
                    </Card>
                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                       <div className="absolute -top-4 -right-4 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/20 transition-all" />
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="p-3 bg-teal-500/20 rounded-2xl text-teal-400">
-                           <Calendar size={24} />
-                        </div>
+                      <div className="flex items-center gap-4 mb-6 text-teal-400">
+                         <Calendar size={24} />
                       </div>
                       <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Upcoming</p>
                       <h4 className="text-4xl font-bold text-white tracking-tighter">2</h4>
                    </Card>
                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                       <div className="absolute -top-4 -right-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all" />
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-400">
-                           <Compass size={24} />
-                        </div>
+                      <div className="flex items-center gap-4 mb-6 text-amber-400">
+                         <Sparkles size={24} />
                       </div>
-                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Rewards</p>
-                      <h4 className="text-4xl font-bold text-white tracking-tighter">2.4k</h4>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Loyalty Points</p>
+                      <h4 className="text-4xl font-bold text-white tracking-tighter">4.2k</h4>
+                   </Card>
+                   <Card className="border-white/10 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+                      <div className="absolute -top-4 -right-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
+                      <div className="flex items-center gap-4 mb-6 text-emerald-400">
+                         <Leaf size={24} />
+                      </div>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-1">Carbon Offset</p>
+                      <h4 className="text-4xl font-bold text-white tracking-tighter">12.5t</h4>
                    </Card>
                 </div>
 
@@ -234,8 +245,8 @@ export const Dashboard = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-white mb-1">${booking.totalAmount || booking.totalPrice}</p>
-                                <Badge className={booking.status === 'confirmed' ? 'bg-teal-500/20 text-teal-400 border-none text-[10px]' : 'bg-amber-500/20 text-amber-400 border-none text-[10px]'}>
-                                  {booking.status}
+                                <Badge className={`${getStatusBadge(booking.status)} px-4 py-1.5 rounded-full uppercase tracking-widest text-[9px] font-black`}>
+                                  {booking.status || 'pending'}
                                 </Badge>
                               </div>
                             </div>
@@ -400,7 +411,9 @@ export const Dashboard = () => {
                                 </div>
                                 <div className="text-right">
                                    <p className="text-2xl font-black text-white tracking-tighter mb-2">${booking.totalAmount || booking.totalPrice}</p>
-                                   <Badge className="bg-teal-500/20 text-teal-400 border-none px-4 py-1.5 rounded-full uppercase tracking-widest text-[9px] font-black">{booking.status}</Badge>
+                                   <Badge className={`${getStatusBadge(booking.status)} px-4 py-1.5 rounded-full uppercase tracking-widest text-[9px] font-black`}>
+                                      {booking.status || 'pending'}
+                                   </Badge>
                                 </div>
                               </div>
                             </Card>

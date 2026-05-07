@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plane, User, LogOut, Menu, X, ShieldAlert } from 'lucide-react';
+import { Plane, User, LogOut, Menu, X, ShieldAlert, Sparkles, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { auth, googleProvider } from '@/src/lib/firebase';
 import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
@@ -74,6 +74,10 @@ export const Navbar = () => {
 
           <div className="hidden md:flex items-center space-x-10">
             <Link to="/tours" className="text-slate-600 dark:text-white/60 hover:text-sky-600 dark:hover:text-white transition-colors text-sm font-medium">Explore Tours</Link>
+            <Link to="/trip-planner" className="flex items-center gap-2 text-slate-600 dark:text-white/60 hover:text-sky-600 dark:hover:text-white transition-colors text-sm font-bold">
+              <Sparkles className="w-4 h-4 text-sky-400 group-hover:rotate-12 transition-transform" /> 
+              <span>AI Planner</span>
+            </Link>
             <Link to="/hotels" className="text-slate-600 dark:text-white/60 hover:text-sky-600 dark:hover:text-white transition-colors text-sm font-medium">Hotel Stays</Link>
             <Link to="/vehicles" className="text-slate-600 dark:text-white/60 hover:text-sky-600 dark:hover:text-white transition-colors text-sm font-medium">Vehicle Rental</Link>
           </div>

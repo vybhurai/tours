@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, Users, Star, ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Calendar, Users, Star, ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Heart, Share2, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { auth, db } from '@/src/lib/firebase';
 import { doc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { MapComponent } from '@/src/components/MapComponent';
 
 export const TourDetailsPage = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export const TourDetailsPage = () => {
   const [guests, setGuests] = useState(1);
   const [travelDate, setTravelDate] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,28 +32,98 @@ export const TourDetailsPage = () => {
       if (tourDoc.exists()) {
         setTour({ id: tourDoc.id, ...tourDoc.data() });
       } else {
-        // Mock fallback for demo
+        // Mock fallback for demo - specific data for different fallback IDs
+        const fallbackData: Record<string, any> = {
+          '1': {
+            title: 'Bali Serenity Retreat',
+            location: 'Ubud, Bali',
+            price: 1200,
+            rating: 4.8,
+            description: 'Experience the ultimate serene getaway in the heart of Bali. This 7-day retreat combines yoga sessions, traditional spa treatments, and visits to ancient temples. Perfect for slow-travel enthusiasts and spiritual seekers.',
+            images: [
+              'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=1200',
+              'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=600'
+            ],
+            highlights: ['Daily Zen Yoga & Meditation', 'Guided Ubud Monkey Forest Visit', 'Traditional 2-Hour Balinese Spa', 'Chef-led Organic Cooking Class', 'Water Temple Purification Ceremony'],
+            duration: '7 Days / 6 Nights',
+            locations: [
+              { name: 'Ubud Village (Start)', lat: -8.5069, lng: 115.2625 },
+              { name: 'Tirta Empul Water Temple', lat: -8.4116, lng: 115.2897 },
+              { name: 'Tegallalang Rice Terraces', lat: -8.4350, lng: 115.2789 },
+              { name: 'Mount Batur Base', lat: -8.2417, lng: 115.3858 }
+            ]
+          },
+          '2': {
+            title: 'Swiss Alps Expedition',
+            location: 'Zermatt, Switzerland',
+            price: 2500,
+            rating: 4.9,
+            description: 'Conquer the majestic peaks of Switzerland. This adventure takes you through the heart of the Alps, offering breathtaking views, high-altitude hiking, and cozy stays in mountain chalets.',
+            images: [
+              'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=1200',
+              'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600'
+            ],
+            highlights: ['Matterhorn Summit Views', 'Glacier Express Train Ride', 'Alpine Village Exploration', 'Gourmet Fondue Experience', 'Mountain Biking Downhill Trails'],
+            duration: '5 Days / 4 Nights',
+            locations: [
+              { name: 'Zermatt Village', lat: 46.0207, lng: 7.7491 },
+              { name: 'Gornergrat Railway', lat: 45.9833, lng: 7.7833 },
+              { name: 'Sunnegga Lookout', lat: 46.0167, lng: 7.7667 },
+              { name: 'The Matterhorn', lat: 45.9763, lng: 7.6586 }
+            ]
+          },
+          '3': {
+            title: 'Kyoto Cultural Journey',
+            location: 'Kyoto, Japan',
+            price: 1800,
+            rating: 4.7,
+            description: 'Dive deep into the rich traditions of Japan. Visit stunning golden pavilions, participate in authentic tea ceremonies, and walk through the iconic Fushimi Inari gates.',
+            images: [
+              'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=1200',
+              'https://images.unsplash.com/photo-1490806678282-46289ba80e8e?auto=format&fit=crop&q=80&w=600'
+            ],
+            highlights: ['Private Tea Ceremony', 'Arashiyama Bamboo Grove Walk', 'Geisha District Evening Tour', 'Zen Garden Meditation', 'Traditional Kaiseki Dinner'],
+            duration: '6 Days / 5 Nights',
+            locations: [
+              { name: 'Kyoto Station', lat: 34.9858, lng: 135.7588 },
+              { name: 'Fushimi Inari-taisha', lat: 34.9671, lng: 135.7727 },
+              { name: 'Kinkaku-ji', lat: 35.0394, lng: 135.7292 },
+              { name: 'Arashiyama Bamboo Grove', lat: 35.0158, lng: 135.6720 },
+              { name: 'Gion District', lat: 35.0037, lng: 135.7750 }
+            ]
+          },
+          '4': {
+            title: 'Amalfi Coast Luxury',
+            location: 'Positano, Italy',
+            price: 3200,
+            rating: 4.9,
+            description: 'Indulge in Italian luxury along the most beautiful coastline in the world. Stunning cliffside views, private boat tours, and Michelin-starred dining await.',
+            images: [
+              'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&q=80&w=1200',
+              'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&q=80&w=600'
+            ],
+            highlights: ['Private Boat Tour to Capri', 'Positano Sunset Dining', 'Limoncello Workshop', 'Pompeii Guided Vist', 'Luxury Cliffside Resort Stay'],
+            duration: '5 Days / 4 Nights',
+            locations: [
+              { name: 'Naples Airport', lat: 40.8844, lng: 14.2908 },
+              { name: 'Pompeii Excavation Site', lat: 40.7489, lng: 14.4848 },
+              { name: 'Positano Village', lat: 40.6281, lng: 14.4850 },
+              { name: 'Amalfi Town', lat: 40.6333, lng: 14.6000 },
+              { name: 'Island of Capri', lat: 40.5500, lng: 14.2333 }
+            ]
+          }
+        };
+
+        const baseTour = fallbackData[id || ''] || fallbackData['1'];
         setTour({
-          id: '1',
-          title: 'Bali Zen Retreat',
-          location: 'Bali, Indonesia',
-          price: 1200,
-          rating: 4.8,
-          description: 'Experience the ultimate serene getaway in the heart of Bali. This 7-day retreat combines yoga sessions, traditional spa treatments, and visits to ancient temples. Perfect for slow-travel enthusiasts and spiritual seekers.',
-          images: [
-            'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=1200',
-            'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=600'
-          ],
-          highlights: ['Daily Zen Yoga & Meditation', 'Guided Ubud Monkey Forest Visit', 'Traditional 2-Hour Balinese Spa', 'Chef-led Organic Cooking Class', 'Water Temple Purification Ceremony'],
-          duration: '7 Days / 6 Nights',
+          id: id || '1',
+          ...baseTour,
           itinerary: [
-            { day: 1, title: 'Arrival & Welcome Dinner', description: 'Arrive at Ngurah Rai International Airport and transfer to our luxury retreat. Enjoy a traditional welcome ceremony and a multi-course organic dinner under the stars.' },
-            { day: 2, title: 'Yoga & Ubud Exploration', description: 'Sunrise yoga followed by a guided tour of Ubud Monkey Forest and the Royal Palace. Afternoon at leisure in Ubud Artisan Market.' },
-            { day: 3, title: 'Ancient Temples & Tradition', description: 'Visit Tirta Empul water temple for a purification ritual. Afternoon traditional wood carving workshop with local masters.' },
-            { day: 4, title: 'Nature & Wellness', description: 'Hike through Tegallalang Rice Terrace at sunrise. Afternoon holistic wellness workshop and spa treatment.' },
-            { day: 5, title: 'Culinary Journey', description: 'Early morning visit to an organic farm. Learn to cook authentic Balinese dishes and enjoy the fruits of your labor.' },
-            { day: 6, title: 'Island Bliss', description: 'Optional day trip to Nusa Penida or a relaxing day at the retreat with personalized wellness sessions.' },
-            { day: 7, title: 'Farewell & Departure', description: 'Final meditation session, farewell brunch, and transfer back to the airport for your onward journey.' }
+            { day: 1, title: 'Arrival & Welcome Dinner', description: 'Arrive and transfer to our luxury retreat. Enjoy a traditional welcome ceremony and a multi-course organic dinner under the stars.' },
+            { day: 2, title: 'Local Exploration', description: 'Guided tour of the most iconic local landmarks and cultural sites.' },
+            { day: 3, title: 'Nature & Adventure', description: 'Immerse yourself in the natural beauty of the region with guided hikes and activities.' },
+            { day: 4, title: 'Wellness & Spa', description: 'A day dedicated to relaxation and rejuvenation with premium spa treatments.' },
+            { day: 5, title: 'Farewell & Departure', description: 'Final group breakfast and transfer back to the airport for your journey home.' }
           ]
         });
       }
@@ -103,20 +175,65 @@ export const TourDetailsPage = () => {
 
   return (
     <div className="pt-16 pb-24 min-h-screen">
-      {/* Hero Image */}
-      <div className="relative h-[65vh] overflow-hidden">
-        <img src={tour.images?.[0] || tour.image}  className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+      {/* Hero Carousel */}
+      <div className="relative h-[75vh] overflow-hidden group">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentImageIndex}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute inset-0"
+          >
+            <img 
+              src={tour.images?.[currentImageIndex] || tour.image}  
+              className="w-full h-full object-cover shadow-2xl" 
+              alt={`${tour.title} - ${currentImageIndex + 1}`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Carousel Controls */}
+        {tour.images && tour.images.length > 1 && (
+          <>
+            <button 
+              onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? tour.images.length - 1 : prev - 1))}
+              className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 transition-all opacity-0 group-hover:opacity-100 z-30"
+            >
+              <ChevronLeft size={28} />
+            </button>
+            <button 
+              onClick={() => setCurrentImageIndex((prev) => (prev === tour.images.length - 1 ? 0 : prev + 1))}
+              className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 transition-all opacity-0 group-hover:opacity-100 z-30"
+            >
+              <ChevronRight size={28} />
+            </button>
+
+            {/* Indicators */}
+            <div className="absolute bottom-56 left-1/2 -translate-x-1/2 flex space-x-3 z-30">
+              {tour.images.map((_: any, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`h-2 rounded-full transition-all duration-500 ${currentImageIndex === idx ? 'w-12 bg-sky-400' : 'w-2 bg-white/30 hover:bg-white/50'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         <Button 
           variant="outline" 
           onClick={() => navigate(-1)}
-          className="absolute top-12 left-12 bg-white/10 border-white/20 backdrop-blur-md text-white hover:bg-white hover:text-slate-900 rounded-2xl h-12 px-6 font-bold z-20"
+          className="absolute top-12 left-12 bg-white/10 border-white/20 backdrop-blur-md text-white hover:bg-white hover:text-slate-900 rounded-2xl h-12 px-6 font-bold z-30"
         >
           <ArrowLeft className="mr-2 h-5 w-5" /> Back
         </Button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-48 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-52 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
@@ -188,6 +305,42 @@ export const TourDetailsPage = () => {
                             </AnimatePresence>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {tour.locations && (
+                    <div className="space-y-12">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400 mb-8 font-mono">Interactive Discovery Map</p>
+                        <MapComponent locations={tour.locations} />
+                      </div>
+
+                      {/* Carbon Footprint Insight */}
+                      <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 bg-emerald-500/[0.02]">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                              <Leaf className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Conscious Luxury</p>
+                              <p className="text-sm font-bold text-white">Carbon Footprint Insight</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-emerald-500 text-black font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full">
+                            842 kg CO₂e Saved
+                          </Badge>
+                        </div>
+                        <p className="text-white/40 text-xs leading-relaxed mb-6">
+                          This expedition utilizes electric transfers and carbon-neutral stays. By choosing this tour, you contribute to local reforestation projects in {tour.title.split(' ')[0]}.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 flex-1 bg-emerald-500/10 rounded-full overflow-hidden">
+                            <div className="h-full w-[85%] bg-emerald-500" />
+                          </div>
+                          <span className="text-[10px] font-black text-emerald-400">85% OFFSET</span>
+                        </div>
                       </div>
                     </div>
                   )}

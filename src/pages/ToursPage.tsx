@@ -36,7 +36,50 @@ export const ToursPage = () => {
         id: doc.id,
         ...doc.data()
       }));
-      setTours(tourData);
+      
+      if (tourData.length > 0) {
+        setTours(tourData);
+      } else {
+        // Fallback mock data if DB is empty
+        setTours([
+          {
+            id: '1',
+            title: 'Bali Serenity Retreat',
+            location: 'Ubud, Bali',
+            price: 1200,
+            rating: 4.8,
+            image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600',
+            category: 'Relaxation'
+          },
+          {
+            id: '2',
+            title: 'Swiss Alps Expedition',
+            location: 'Zermatt, Switzerland',
+            price: 2500,
+            rating: 4.9,
+            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=600',
+            category: 'Adventure'
+          },
+          {
+            id: '3',
+            title: 'Kyoto Cultural Journey',
+            location: 'Kyoto, Japan',
+            price: 1800,
+            rating: 4.7,
+            image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600',
+            category: 'Cultural'
+          },
+          {
+            id: '4',
+            title: 'Amalfi Coast Luxury',
+            location: 'Positano, Italy',
+            price: 3200,
+            rating: 4.9,
+            image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&q=80&w=600',
+            category: 'Luxury'
+          }
+        ]);
+      }
     } catch (error) {
       console.error('Error fetching tours:', error);
     } finally {

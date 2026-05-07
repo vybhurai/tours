@@ -10,7 +10,9 @@ import { HotelsPage } from './pages/HotelsPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { PaymentSuccess } from './pages/PaymentSuccess';
+import { TripPlanner } from './pages/TripPlanner';
 import { AIChatbot } from './components/AIChatbot';
+import { CommandPalette } from './components/CommandPalette';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 
@@ -29,6 +31,7 @@ function App() {
               <Route path="/tours/:id" element={<TourDetailsPage />} />
               <Route path="/hotels" element={<HotelsPage />} />
               <Route path="/vehicles" element={<VehiclesPage />} />
+              <Route path="/trip-planner" element={<TripPlanner />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/admin" element={<AdminDashboard />} />
               {/* Fallback routes */}
@@ -37,6 +40,7 @@ function App() {
           </main>
           <Footer />
           <AIChatbot />
+          <CommandPalette />
           <Toaster />
         </div>
       </Router>

@@ -27,7 +27,7 @@ service cloud.firestore {
 
     match /tour_packages/{packageId} {
       allow read: if true;
-      allow write: if isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if isSignedIn() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     function isValidBooking(data) {

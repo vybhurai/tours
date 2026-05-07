@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, MapPin, Calendar, Users, ArrowRight, Star, Compass, ShieldCheck, Globe } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, ArrowRight, Star, Compass, ShieldCheck, Globe, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '../lib/utils';
 
 export const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,13 +20,51 @@ export const LandingPage = () => {
     }
   };
 
+  const bentoDestinations = [
+    { 
+      name: 'Bali, Indonesia', 
+      price: '$899', 
+      match: '98%', 
+      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=1200',
+      size: 'large',
+      description: 'Find inner peace among ancient temples and sacred forests.'
+    },
+    { 
+      name: 'Santorini, Greece', 
+      price: '$1299', 
+      match: '95%', 
+      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&q=80&w=800',
+      size: 'small',
+      description: 'Iconic sunsets over the azure Aegean.'
+    },
+    { 
+      name: 'Kyoto, Japan', 
+      price: '$1499', 
+      match: '92%', 
+      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=800',
+      size: 'medium',
+      description: 'A delicate dance between history and tomorrow.'
+    },
+    { 
+      name: 'Swiss Alps, CH', 
+      price: '$1899', 
+      match: '89%', 
+      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=800',
+      size: 'small',
+      description: 'Pristine peaks and alpine adventure.'
+    }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-slate-900/40 dark:bg-sky-950/60 z-10" />
-          <img 
+        <div className="absolute inset-0 z-0 scale-110">
+          <div className="absolute inset-0 bg-slate-900/40 dark:bg-sky-950/70 z-10" />
+          <motion.img 
+            initial={{ scale: 1 }}
+            animate={{ scale: 1.1 }}
+            transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=2000" 
             alt="Travel Hero" 
             className="w-full h-full object-cover"
@@ -34,28 +73,29 @@ export const LandingPage = () => {
 
         <div className="relative z-20 max-w-5xl mx-auto px-4 text-center text-white">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 1 }}
           >
-            <Badge className="mb-4 bg-white/10 dark:bg-sky-500/20 text-white dark:text-sky-400 border-white/20 dark:border-sky-500/50 backdrop-blur-md px-4 py-1 uppercase tracking-widest font-bold text-[10px]">
+            <div className="inline-flex items-center gap-2 mb-6 bg-white/10 dark:bg-sky-500/20 text-white dark:text-sky-400 border border-white/20 dark:border-sky-500/50 backdrop-blur-xl px-5 py-2 rounded-full uppercase tracking-[0.3em] font-black text-[9px]">
+              <Sparkles className="w-3 h-3" />
               Explore the unconventional
-            </Badge>
-            <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tighter">
+            </div>
+            <h1 className="text-6xl md:text-9xl font-black mb-8 tracking-tighter leading-[0.85]">
               Adventure Awaits,<br />
-              <span className="gradient-text">Discover Yourself</span>
+              <span className="text-sky-400">Discover Yourself</span>
             </h1>
-            <p className="text-xl text-slate-200 dark:text-white/60 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-200 dark:text-white/60 mb-12 max-w-2xl mx-auto font-medium leading-relaxed bg-black/20 backdrop-blur-sm rounded-3xl p-6">
               AI-powered personalized travel recommendations curated based on your unique travel DNA.
             </p>
 
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-2 rounded-2xl md:rounded-full max-w-4xl mx-auto shadow-2xl">
+            <div className="bg-white/10 backdrop-blur-3xl border border-white/20 p-2 rounded-3xl md:rounded-full max-w-4xl mx-auto shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)]">
               <div className="flex flex-col md:flex-row items-center gap-2">
                 <div className="flex-1 w-full relative">
                   <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-white/40 h-5 w-5" />
                   <Input 
                     placeholder="Where to next?" 
-                    className="bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 pl-14 h-14"
+                    className="bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 pl-14 h-14 font-medium"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -66,14 +106,14 @@ export const LandingPage = () => {
                   <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-white/40 h-5 w-5" />
                   <Input 
                     type="date"
-                    className="bg-transparent border-none text-white focus-visible:ring-0 pl-14 h-14 [color-scheme:dark]"
+                    className="bg-transparent border-none text-white focus-visible:ring-0 pl-14 h-14 [color-scheme:dark] font-medium"
                   />
                 </div>
                 <Button 
                   onClick={handleSearch}
-                  className="w-full md:w-auto travel-gradient h-14 px-12 rounded-full font-bold shadow-xl hover:scale-105 transition-transform"
+                  className="w-full md:w-auto travel-gradient h-14 px-12 rounded-full font-black text-white uppercase tracking-widest text-xs shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
-                  Search Tours
+                  Expedition Search
                 </Button>
               </div>
             </div>
@@ -81,60 +121,74 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Featured Destinations */}
-      <section className="py-32 bg-white dark:bg-transparent">
+      {/* Bento Featured Destinations */}
+      <section className="py-32 bg-slate-50 dark:bg-slate-950 pb-48">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
-            <div>
-              <p className="text-sky-500 dark:text-sky-400 font-bold tracking-[0.2em] uppercase text-[10px] mb-3">AI Curated Destintions</p>
-              <h2 className="text-4xl md:text-5xl font-bold dark:text-white tracking-tight">Popular Getaways</h2>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
+            <div className="max-w-xl">
+              <p className="text-sky-500 dark:text-sky-400 font-black tracking-[0.4em] uppercase text-[9px] mb-4">Elite Curation</p>
+              <h2 className="text-5xl md:text-7xl font-black dark:text-white tracking-tighter leading-none mb-6">Unrivaled Destinations</h2>
+              <p className="text-slate-500 dark:text-white/40 text-lg">Our top-tier picks, analyzed and verified by Discovery AI for your unique profile.</p>
             </div>
-            <Button 
-              variant="ghost" 
-              className="text-sky-600 dark:text-sky-400 font-bold group"
-              onClick={() => navigate('/tours')}
-            >
-              View all <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link to="/tours">
+              <div className="w-40 h-40 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center hover:scale-110 transition-all duration-500 hover:bg-sky-500 hover:text-white hover:border-sky-500 group cursor-pointer relative overflow-hidden">
+                <div className="absolute inset-0 bg-sky-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <span className="relative z-10 font-black uppercase text-[10px] tracking-widest flex items-center">
+                  All Tours <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              </div>
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { name: 'Bali, Indonesia', price: '$899', match: '98%', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600' },
-              { name: 'Santorini, Greece', price: '$1299', match: '95%', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&q=80&w=600' },
-              { name: 'Kyoto, Japan', price: '$1499', match: '92%', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600' },
-              { name: 'Swiss Alps, CH', price: '$1899', match: '89%', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=600' }
-            ].map((dest, i) => (
-              <motion.div 
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-auto md:h-[900px]">
+            {bentoDestinations.map((dest, i) => (
+              <motion.div
                 key={i}
-                whileHover={{ y: -10 }}
-                className="group"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.8 }}
+                className={cn(
+                  "relative rounded-[3rem] overflow-hidden group cursor-pointer border border-slate-200 dark:border-white/10 shadow-2xl",
+                  dest.size === 'large' ? "md:col-span-2 md:row-span-2" : 
+                  dest.size === 'medium' ? "md:col-span-2 md:row-span-1" :
+                  "md:col-span-1 md:row-span-1"
+                )}
+                onClick={() => navigate('/tours')}
               >
-                <Card className="overflow-hidden border-white/10 bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-[2.5rem] p-1 border cursor-pointer hover:border-white/20 transition-all duration-500 shadow-2xl">
-                  <div className="relative h-72 rounded-[2rem] overflow-hidden m-1 mb-4">
-                    <img src={dest.image} alt={dest.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 font-bold rounded-full px-3 py-1">{dest.price}</Badge>
-                    </div>
-                    <div className="absolute bottom-4 left-4">
-                      <Badge className="bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">{dest.match} Match</Badge>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
+                <motion.img 
+                  src={dest.image} 
+                  alt={dest.name} 
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
+                />
+                
+                <div className="absolute top-8 left-8 z-20 flex flex-wrap gap-2">
+                  <Badge className="bg-white/10 backdrop-blur-xl text-white border-white/20 font-black tracking-widest text-[9px] uppercase px-4 py-2 rounded-full">
+                    {dest.price}
+                  </Badge>
+                  <Badge className="bg-sky-500 text-white font-black tracking-widest text-[9px] uppercase px-4 py-2 rounded-full shadow-lg shadow-sky-500/40">
+                    {dest.match} MATCH
+                  </Badge>
+                </div>
+
+                <div className="absolute bottom-8 left-8 right-8 z-20">
+                  <div className="flex items-center gap-2 mb-2 text-sky-400">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="text-xs font-black tracking-widest">4.9 PREMIUM</span>
                   </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-xl dark:text-white tracking-tight">{dest.name}</h3>
-                      <div className="flex items-center text-amber-400">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="text-sm font-bold ml-1">4.9</span>
-                      </div>
-                    </div>
-                    <Link to="/tours" className="block w-full">
-                      <button className="w-full py-3 bg-white/10 dark:bg-sky-500/10 border border-white/10 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-sky-500 hover:text-white transition-all duration-300">
-                        Explore Package
-                      </button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                  <h3 className={cn("font-black text-white tracking-tighter leading-none mb-3", dest.size === 'large' ? "text-4xl md:text-6xl" : "text-3xl")}>
+                    {dest.name}
+                  </h3>
+                  {dest.size === 'large' && (
+                    <p className="text-white/60 font-medium max-w-sm mb-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                      {dest.description}
+                    </p>
+                  )}
+                  <div className="flex items-center text-white/40 group-hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">
+                    Veiw Package Details <ArrowRight size={14} className="ml-2 h-4 w-4 transform group-hover:translate-x-2 transition-transform" />
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>

@@ -129,15 +129,11 @@ export const HotelsPage = () => {
                     </div>
                     <Dialog>
                       <DialogTrigger
-                        render={
-                          <Button 
-                            className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn"
-                          >
-                            Book Stay <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
-                          </Button>
-                        }
+                        className="rounded-2xl travel-gradient px-8 py-6 font-bold shadow-xl shadow-sky-900/20 group/btn inline-flex items-center justify-center text-white"
                         onClick={() => setSelectedHotel(hotel)}
-                      />
+                      >
+                        Book Stay <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+                      </DialogTrigger>
                       <DialogContent className="sm:max-w-md bg-slate-900 border-white/10 text-white rounded-[2rem]">
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold tracking-tight">Reserve {hotel.name}</DialogTitle>
