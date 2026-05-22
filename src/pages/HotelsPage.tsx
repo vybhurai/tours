@@ -7,8 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { db } from '@/src/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { PaymentModal } from '@/src/components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
 
 export const HotelsPage = () => {
@@ -17,13 +16,15 @@ export const HotelsPage = () => {
   const [guests, setGuests] = useState(1);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any>(null);
   const navigate = useNavigate();
 
   const hotels = [
-    { id: 'h1', name: 'Azure Bay Resort', location: 'Maldives', price: 450, rating: 4.9, image: 'https://images.unsplash.com/photo-1540206351-d6465b3ac5c1?auto=format&fit=crop&q=80&w=600' },
-    { id: 'h2', name: 'The Grand Peak', location: 'Zermatt, Switzerland', price: 380, rating: 4.8, image: 'https://images.unsplash.com/photo-1551882547-ff43c63efe81?auto=format&fit=crop&q=80&w=600' },
-    { id: 'h3', name: 'Kyoto Heritage Inn', location: 'Kyoto, Japan', price: 220, rating: 4.7, image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600' },
-    { id: 'h4', name: 'Urban Oasis Hotel', location: 'Singapore', price: 310, rating: 4.6, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600' },
+    { id: 'h1', name: 'Azure Bay Resort', location: 'Maldives', price: 38500, rating: 4.9, image: 'https://images.unsplash.com/photo-1540206351-d6465b3ac5c1?auto=format&fit=crop&q=80&w=600' },
+    { id: 'h2', name: 'The Grand Peak', location: 'Zermatt, Switzerland', price: 32000, rating: 4.8, image: 'https://images.unsplash.com/photo-1551882547-ff43c63efe81?auto=format&fit=crop&q=80&w=600' },
+    { id: 'h3', name: 'Kyoto Heritage Inn', location: 'Kyoto, Japan', price: 18500, rating: 4.7, image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600' },
+    { id: 'h4', name: 'Urban Oasis Hotel', location: 'Singapore', price: 25000, rating: 4.6, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600' },
   ];
 
   const calculateTotal = () => {
@@ -48,28 +49,22 @@ export const HotelsPage = () => {
       return;
     }
 
-    try {
-      const total = calculateTotal();
-      await addDoc(collection(db, 'bookings'), {
-        userId: currUser.uid || currUser.username,
-        userName: currUser.displayName || currUser.username,
-        packageId: selectedHotel.id,
-        packageName: selectedHotel.name,
-        type: 'hotel',
-        travelDate: checkIn,
-        checkOutDate: checkOut,
-        guests: guests,
-        totalAmount: total,
-        status: 'confirmed',
-        createdAt: new Date().toISOString()
-      });
+    const total = calculateTotal();
+    const bookingData = {
+      userId: currUser.uid || currUser.username,
+      userName: currUser.displayName || currUser.username,
+      packageId: selectedHotel.id,
+      packageName: selectedHotel.name,
+      type: 'hotel' as const,
+      startDate: checkIn,
+      endDate: checkOut,
+      travelDate: checkIn,
+      guests: guests,
+      totalAmount: total,
+    };
 
-      toast.success('Hotel booked successfully!');
-      navigate('/payment-success');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to book hotel');
-    }
+    setPendingBooking(bookingData);
+    setIsPaymentOpen(true);
   };
 
   const filteredHotels = hotels.filter(h => 
@@ -98,37 +93,55 @@ export const HotelsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredHotels.map((hotel, i) => (
+          {filteredHotels.length === 0 ? (
+            <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-24 h-24 mb-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                 <Search size={40} />
+              </div>
+              <h3 className="text-2xl font-bold dark:text-white mb-2 tracking-tight">No Hotels Found</h3>
+              <p className="text-slate-500 dark:text-white/40 mb-8 max-w-sm">Try adjusting your filters or search terms.</p>
+              <Button onClick={() => { setSearchTerm(''); setPriceRange([0, 50000]); }} variant="outline" className="border-sky-500/50 text-sky-400 hover:bg-sky-500/10 rounded-xl px-8 h-12 uppercase tracking-widest text-[10px] font-black">
+                Reset All Filters
+              </Button>
+            </div>
+          ) : filteredHotels.map((hotel, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl group cursor-pointer hover:border-white/20 transition-all duration-500 shadow-2xl p-1">
-                <div className="relative h-80 rounded-[2.2rem] overflow-hidden m-1">
-                  <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                  <div className="absolute top-5 right-5">
+              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl group cursor-pointer hover:border-white/20 transition-all duration-500 shadow-2xl p-1 h-full flex flex-col">
+                <div className="relative h-80 rounded-[2.2rem] overflow-hidden m-1 bg-slate-900 shrink-0">
+                  <img 
+                    src={hotel.image} 
+                    alt={hotel.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 text-slate-500 bg-slate-900" 
+                    onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=800'; }}
+                  />
+                  <div className="absolute top-5 right-5 z-10">
                     <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 font-bold rounded-full px-4 py-2">
                       {hotel.rating} <Star className="ml-1 h-3 w-3 fill-amber-400 text-amber-400 inline" />
                     </Badge>
                   </div>
-                  <div className="absolute bottom-5 left-5 flex gap-2">
+                  <div className="absolute bottom-5 left-5 flex gap-2 z-10">
                     <Badge className="bg-sky-500/20 backdrop-blur-md text-sky-400 border-none"><Wifi size={14} /></Badge>
                     <Badge className="bg-sky-500/20 backdrop-blur-md text-sky-400 border-none"><Coffee size={14} /></Badge>
                     <Badge className="bg-sky-500/20 backdrop-blur-md text-sky-400 border-none"><Wind size={14} /></Badge>
                   </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
                 </div>
-                <CardContent className="p-8">
+                <CardContent className="p-8 flex-1 flex flex-col">
                   <div className="flex items-center text-sky-400 font-bold text-[10px] uppercase tracking-widest mb-3">
                     <MapPin size={12} className="mr-2" /> {hotel.location}
                   </div>
-                  <h3 className="text-3xl font-bold mb-6 dark:text-white tracking-tighter">{hotel.name}</h3>
+                  <h3 className="text-3xl font-bold mb-6 dark:text-white tracking-tighter group-hover:text-amber-400 transition-colors duration-300">{hotel.name}</h3>
+                  <div className="flex-1" />
                   
-                  <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                  <div className="flex items-center justify-between pt-6 border-t border-white/10 mt-auto">
                     <div>
                       <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Starting at</p>
-                      <p className="text-3xl font-bold text-white tracking-tighter">${hotel.price}<span className="text-sm font-normal opacity-40">/night</span></p>
+                      <p className="text-3xl font-black text-white tracking-tighter">₹{hotel.price.toLocaleString('en-IN')}<span className="text-sm font-normal opacity-40">/night</span></p>
                     </div>
                     <Dialog>
                       <DialogTrigger
@@ -174,7 +187,7 @@ export const HotelsPage = () => {
                              <div className="flex justify-between items-end mb-6">
                                 <div>
                                   <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Total Price</p>
-                                  <p className="text-4xl font-bold text-sky-400 tracking-tighter">${calculateTotal()}</p>
+                                  <p className="text-4xl font-bold text-sky-400 tracking-tighter">₹{calculateTotal().toLocaleString('en-IN')}</p>
                                 </div>
                                 <p className="text-xs text-white/40">Inc. taxes & fees</p>
                              </div>
@@ -189,6 +202,13 @@ export const HotelsPage = () => {
             </motion.div>
           ))}
         </div>
+         {pendingBooking && (
+          <PaymentModal
+            isOpen={isPaymentOpen}
+            onClose={() => setIsPaymentOpen(false)}
+            bookingData={pendingBooking}
+          />
+        )}
       </div>
     </div>
   );

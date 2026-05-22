@@ -73,10 +73,10 @@ export const TripPlanner = () => {
 
               <div className="space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-sky-400 flex items-center gap-2">
-                  <Wallet className="w-3 h-3" /> Total Budget (USD)
+                  <Wallet className="w-3 h-3" /> Total Budget (INR)
                 </label>
                 <Input 
-                  placeholder="e.g. $5,000"
+                  placeholder="e.g. ₹5,00,000"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-sky-500/20 text-white"
@@ -154,7 +154,7 @@ export const TripPlanner = () => {
                   </div>
                 </motion.div>
               ) : (
-                <div className="h-[700px] rounded-[3rem] border-2 border-dashed border-white/5 flex flex-col items-center justify-center text-center p-12 bg-white/[0.02]">
+                <div className="min-h-[400px] lg:h-[700px] rounded-[3rem] border-2 border-dashed border-white/5 flex flex-col items-center justify-center text-center p-8 md:p-12 bg-white/[0.02]">
                   <div className="w-24 h-24 bg-sky-500/10 rounded-[2.5rem] flex items-center justify-center text-sky-400 mb-8 border border-sky-500/20">
                     <Compass className="w-10 h-10 animate-pulse" />
                   </div>

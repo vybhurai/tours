@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search, MapPin, Gauge, Fuel, Cog, ArrowRight, Car, Calendar as CalendarIcon, Users } from 'lucide-react';
+import { Search, MapPin, Gauge, Fuel, Cog, ArrowRight, Car, Calendar as CalendarIcon, Users, BatteryCharging, Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { db } from '@/src/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { PaymentModal } from '@/src/components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
 
 export const VehiclesPage = () => {
@@ -16,13 +15,51 @@ export const VehiclesPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any>(null);
   const navigate = useNavigate();
 
   const vehicles = [
-    { id: 'v1', name: 'Porsche Taycan', type: 'Electric', price: 250, specs: '0-60 in 2.6s', image: 'https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&q=80&w=600', location: 'Dubai' },
-    { id: 'v2', name: 'Range Rover Sport', type: 'Luxury SUV', price: 180, specs: 'All-Terrain V8', image: 'https://images.unsplash.com/photo-1563720223185-11003d516905?auto=format&fit=crop&q=80&w=600', location: 'London' },
-    { id: 'v3', name: 'Tesla Model S Plaid', type: 'Electric', price: 190, specs: '1,020 hp', image: 'https://images.unsplash.com/photo-1617788138017-80ad422432a9?auto=format&fit=crop&q=80&w=600', location: 'Los Angeles' },
-    { id: 'v4', name: 'Mercedes S-Class', type: 'Luxury Sedan', price: 220, specs: 'Exec Lounge', image: 'https://images.unsplash.com/photo-1554670628-1ebd33d1eaa4?auto=format&fit=crop&q=80&w=600', location: 'Paris' },
+    { 
+      id: 'v1', name: 'Ferrari F8 Tributo', type: 'Luxury Sports', price: 45000, 
+      image: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&q=80&w=800', 
+      location: 'Dubai',
+      features: [
+        { label: '0-100', value: '2.9s', icon: <Zap size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Top Speed', value: '340 km/h', icon: <Gauge size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Horsepower', value: '710 HP', icon: <Cog size={20} className="text-sky-400 mb-2" /> },
+      ]
+    },
+    { 
+      id: 'v2', name: 'Mercedes-AMG G 63', type: 'Luxury SUV', price: 25000, 
+      image: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?auto=format&fit=crop&q=80&w=800', 
+      location: 'London',
+      features: [
+        { label: '0-100', value: '4.5s', icon: <Zap size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Horsepower', value: '577 HP', icon: <Cog size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Top Speed', value: '220 km/h', icon: <Gauge size={20} className="text-sky-400 mb-2" /> },
+      ]
+    },
+    { 
+      id: 'v3', name: 'Tesla Model S Plaid', type: 'Electric', price: 16500, 
+      image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&q=80&w=800', 
+      location: 'Los Angeles',
+      features: [
+        { label: 'Full Charge', value: '45 mins', icon: <BatteryCharging size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Range', value: '600 km', icon: <MapPin size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Capacity', value: '100 kWh', icon: <Zap size={20} className="text-sky-400 mb-2" /> },
+      ]
+    },
+    { 
+      id: 'v4', name: 'BMW 7 Series', type: 'Luxury Sedan', price: 32000, 
+      image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800', 
+      location: 'Paris',
+      features: [
+        { label: '0-100', value: '4.8s', icon: <Zap size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Horsepower', value: '563 HP', icon: <Cog size={20} className="text-sky-400 mb-2" /> },
+        { label: 'Top Speed', value: '250 km/h', icon: <Gauge size={20} className="text-sky-400 mb-2" /> },
+      ]
+    },
   ];
 
   const calculateTotal = () => {
@@ -47,27 +84,22 @@ export const VehiclesPage = () => {
       return;
     }
 
-    try {
-      const total = calculateTotal();
-      await addDoc(collection(db, 'bookings'), {
-        userId: currUser.uid || currUser.username,
-        userName: currUser.displayName || currUser.username,
-        packageId: selectedVehicle.id,
-        packageName: selectedVehicle.name,
-        type: 'vehicle',
-        travelDate: startDate,
-        endDate: endDate,
-        totalAmount: total,
-        status: 'confirmed',
-        createdAt: new Date().toISOString()
-      });
+    const total = calculateTotal();
+    const bookingData = {
+      userId: currUser.uid || currUser.username,
+      userName: currUser.displayName || currUser.username,
+      packageId: selectedVehicle.id,
+      packageName: selectedVehicle.name,
+      type: 'vehicle' as const,
+      startDate: startDate,
+      endDate: endDate,
+      travelDate: startDate,
+      guests: 1,
+      totalAmount: total,
+    };
 
-      toast.success('Vehicle reserved successfully!');
-      navigate('/payment-success');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to reserve vehicle');
-    }
+    setPendingBooking(bookingData);
+    setIsPaymentOpen(true);
   };
 
   const filteredVehicles = vehicleType === 'All' 
@@ -99,47 +131,59 @@ export const VehiclesPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredVehicles.map((vehicle, i) => (
+          {filteredVehicles.length === 0 ? (
+            <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-24 h-24 mb-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                 <Search size={40} />
+              </div>
+              <h3 className="text-2xl font-bold dark:text-white mb-2 tracking-tight">No Vehicles Found</h3>
+              <p className="text-slate-500 dark:text-white/40 mb-8 max-w-sm">Try adjusting your filters.</p>
+              <Button onClick={() => setVehicleType('All')} variant="outline" className="border-sky-500/50 text-sky-400 hover:bg-sky-500/10 rounded-xl px-8 h-12 uppercase tracking-widest text-[10px] font-black">
+                Reset Filters
+              </Button>
+            </div>
+          ) : filteredVehicles.map((vehicle, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl group cursor-pointer hover:border-white/20 transition-all duration-500 shadow-2xl p-1">
-                <div className="relative h-72 rounded-[2.2rem] overflow-hidden m-1">
-                  <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                  <div className="absolute top-5 left-5">
-                    <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 font-bold rounded-full px-4 py-2 uppercase tracking-widest text-[10px]">
+              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl group cursor-pointer hover:border-white/20 transition-all duration-500 shadow-2xl p-1 h-full flex flex-col">
+                <div className="relative h-72 rounded-[2.2rem] overflow-hidden m-1 bg-slate-900 shrink-0">
+                  <img 
+                    src={vehicle.image} 
+                    alt={vehicle.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 text-slate-500 bg-slate-900" 
+                    onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=800'; }}
+                  />
+                  <div className="absolute top-5 left-5 z-10">
+                    <Badge className="bg-slate-950/40 backdrop-blur-md text-white border-white/20 font-bold rounded-full px-4 py-2 uppercase tracking-widest text-[10px]">
                       {vehicle.type}
                     </Badge>
                   </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none" />
                 </div>
-                <CardContent className="p-8">
+                <CardContent className="p-8 flex-1 flex flex-col">
                   <div className="flex items-center text-sky-400 font-bold text-[10px] uppercase tracking-widest mb-3">
                     <MapPin size={12} className="mr-2" /> {vehicle.location}
                   </div>
-                  <h3 className="text-3xl font-bold mb-6 dark:text-white tracking-tighter">{vehicle.name}</h3>
+                  <h3 className="text-3xl font-bold mb-6 dark:text-white tracking-tighter group-hover:text-amber-400 transition-colors duration-300">{vehicle.name}</h3>
                   
-                  <div className="grid grid-cols-3 gap-4 mb-8">
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                      <Gauge size={20} className="text-sky-400 mb-2" />
-                      <p className="text-[10px] text-white/40 uppercase font-black">{vehicle.specs}</p>
-                    </div>
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                      <Fuel size={20} className="text-sky-400 mb-2" />
-                      <p className="text-[10px] text-white/40 uppercase font-black">Full EV</p>
-                    </div>
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                      <Cog size={20} className="text-sky-400 mb-2" />
-                      <p className="text-[10px] text-white/40 uppercase font-black">Auto</p>
-                    </div>
+                  <div className="grid grid-cols-3 gap-4 mb-8 flex-1 content-start">
+                    {vehicle.features.map((feature, idx) => (
+                      <div key={idx} className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center hover:bg-white/10 transition-colors">
+                        {feature.icon}
+                        <p className="text-[9px] text-white/40 uppercase tracking-widest mb-1">{feature.label}</p>
+                        <p className="text-xs text-white font-black">{feature.value}</p>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="flex items-center justify-between pt-6 border-t border-white/10">
                     <div>
                       <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Daily Rate</p>
-                      <p className="text-3xl font-bold text-white tracking-tighter">${vehicle.price}</p>
+                      <p className="text-3xl font-black text-white tracking-tighter">₹{vehicle.price.toLocaleString('en-IN')}</p>
                     </div>
                     <Dialog>
                       <DialogTrigger
@@ -177,7 +221,7 @@ export const VehiclesPage = () => {
                              <div className="flex justify-between items-end mb-6">
                                 <div>
                                   <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Total Rental Cost</p>
-                                  <p className="text-4xl font-bold text-sky-400 tracking-tighter">${calculateTotal()}</p>
+                                  <p className="text-4xl font-bold text-sky-400 tracking-tighter">₹{calculateTotal().toLocaleString('en-IN')}</p>
                                 </div>
                                 <p className="text-xs text-white/40">Includes insurance</p>
                              </div>
@@ -192,6 +236,13 @@ export const VehiclesPage = () => {
             </motion.div>
           ))}
         </div>
+         {pendingBooking && (
+          <PaymentModal
+            isOpen={isPaymentOpen}
+            onClose={() => setIsPaymentOpen(false)}
+            bookingData={pendingBooking}
+          />
+        )}
       </div>
     </div>
   );

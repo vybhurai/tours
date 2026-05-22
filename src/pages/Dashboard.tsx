@@ -18,8 +18,7 @@ import {
   Users,
   Leaf
 } from 'lucide-react';
-import { db } from '@/src/lib/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { localDb } from '@/src/lib/localDb';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,14 +81,8 @@ export const Dashboard = () => {
 
   const fetchDashboardData = async (uid: string) => {
     try {
-      const q = query(
-        collection(db, 'bookings'),
-        where('userId', '==', uid),
-        orderBy('createdAt', 'desc'),
-        limit(5)
-      );
-      const snapshot = await getDocs(q);
-      setRecentBookings(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const userBookings = localDb.getUserBookings(uid);
+      setRecentBookings(userBookings.slice(0, 5));
       
       // AI Recommendations
       const res = await getRecommendations({ budget: 'medium', interests: ['nature', 'adventure'] });
@@ -163,8 +156,8 @@ export const Dashboard = () => {
             <Card className="bg-white/5 backdrop-blur-md rounded-[2rem] p-6 border border-white/10 overflow-hidden relative">
                <div className="relative z-10">
                  <p className="text-[10px] text-white/40 mb-2 uppercase tracking-widest font-bold">My Wallet</p>
-                 <p className="text-2xl font-bold dark:text-white">$4,250.00</p>
-                 <button className="mt-4 w-full py-3 bg-sky-500 rounded-2xl text-[10px] uppercase tracking-widest font-black hover:bg-sky-400 transition-colors shadow-lg shadow-sky-500/30">Top Up</button>
+                 <p className="text-2xl font-bold dark:text-white">₹3,50,000</p>
+                 <button className="mt-4 w-full py-3 bg-gradient-to-r from-amber-400 to-amber-600 rounded-2xl text-[10px] uppercase tracking-widest font-black text-slate-950 hover:opacity-95 shadow-lg shadow-amber-500/10">Top Up Wallet</button>
                </div>
             </Card>
           </aside>
@@ -290,7 +283,7 @@ export const Dashboard = () => {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <p className="font-bold text-white mb-1">${booking.totalAmount || booking.totalPrice}</p>
+                                <p className="font-bold text-white mb-1">₹{(booking.totalAmount || booking.totalPrice || 0).toLocaleString('en-IN')}</p>
                                 <Badge className={`${getStatusBadge(booking.status)} px-4 py-1.5 rounded-full uppercase tracking-widest text-[9px] font-black`}>
                                   {booking.status || 'pending'}
                                 </Badge>
@@ -320,8 +313,8 @@ export const Dashboard = () => {
                     <CardContent className="p-2 space-y-2">
                        {recommendations.map((rec, i) => (
                          <div key={i} className="p-2 bg-white/5 hover:bg-white/10 rounded-[2rem] border border-white/5 flex gap-5 transition-all group cursor-pointer">
-                            <div className="w-24 h-24 rounded-3xl shrink-0 overflow-hidden m-1">
-                               <img src={`https://source.unsplash.com/random/240x240?${rec.location}`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="w-24 h-24 rounded-3xl shrink-0 overflow-hidden m-1 bg-slate-900">
+                               <img src={`https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=240`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 bg-slate-900 text-slate-500" />
                             </div>
                             <div className="py-2 pr-4 flex flex-col justify-center">
                                <h5 className="font-bold text-white leading-tight mb-1">{rec.title}</h5>
@@ -402,8 +395,8 @@ export const Dashboard = () => {
                       <div className="flex items-center gap-4">
                         <div className="flex -space-x-3">
                           {recentBookings.slice(0, 3).map((b, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 overflow-hidden">
-                              <img src={`https://source.unsplash.com/random/100x100?tour,${i}`} className="w-full h-full object-cover" />
+                            <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 overflow-hidden bg-slate-900">
+                              <img src={`https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=100`} className="w-full h-full object-cover bg-slate-900 text-slate-500" />
                             </div>
                           ))}
                         </div>
@@ -438,8 +431,8 @@ export const Dashboard = () => {
                             <Card className="bg-white/5 border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 transition-all cursor-pointer group relative overflow-hidden">
                               <div className="flex items-center justify-between relative z-10">
                                 <div className="flex items-center gap-6">
-                                  <div className="w-20 h-20 rounded-3xl overflow-hidden relative shadow-2xl">
-                                      <img src={`https://source.unsplash.com/random/200x200?tour,${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                  <div className="w-20 h-20 rounded-3xl overflow-hidden relative shadow-2xl bg-slate-900">
+                                      <img src={`https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?auto=format&fit=crop&q=80&w=200`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 bg-slate-900 text-slate-500" />
                                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                          {booking.type === 'hotel' ? <Calendar className="text-white" /> : booking.type === 'vehicle' ? <Plane className="text-white" /> : <Compass className="text-white" />}
                                       </div>
@@ -456,7 +449,7 @@ export const Dashboard = () => {
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                   <p className="text-2xl font-black text-white tracking-tighter mb-2">${booking.totalAmount || booking.totalPrice}</p>
+                                   <p className="text-2xl font-black text-white tracking-tighter mb-2">₹{(booking.totalAmount || booking.totalPrice || 0).toLocaleString('en-IN')}</p>
                                    <Badge className={`${getStatusBadge(booking.status)} px-4 py-1.5 rounded-full uppercase tracking-widest text-[9px] font-black`}>
                                       {booking.status || 'pending'}
                                    </Badge>

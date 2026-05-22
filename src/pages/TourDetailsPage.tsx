@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Calendar, Users, Star, ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Heart, Share2, Leaf } from 'lucide-react';
+import { MapPin, Calendar, Users, Star, ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Heart, Share2, Leaf, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { db } from '@/src/lib/firebase';
-import { doc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { MapComponent } from '@/src/components/MapComponent';
+import { PaymentModal } from '@/src/components/PaymentModal';
+import { DESTINATIONS } from '../data/destinations';
 
 export const TourDetailsPage = () => {
   const { id } = useParams();
@@ -19,6 +19,8 @@ export const TourDetailsPage = () => {
   const [travelDate, setTravelDate] = useState('');
   const [expandedDay, setExpandedDay] = useState<number | null>(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,109 +28,19 @@ export const TourDetailsPage = () => {
   }, [id]);
 
   const fetchTourDetails = async () => {
+    setIsLoading(true);
     try {
       if (!id) return;
-      const tourDoc = await getDoc(doc(db, 'tour_packages', id));
-      if (tourDoc.exists()) {
-        setTour({ id: tourDoc.id, ...tourDoc.data() });
+      // Direct client-side lookup from the 15 premium havens list
+      const matchingDest = DESTINATIONS.find(dest => dest.id === id);
+      if (matchingDest) {
+        setTour(matchingDest);
       } else {
-        // Mock fallback for demo - specific data for different fallback IDs
-        const fallbackData: Record<string, any> = {
-          '1': {
-            title: 'Bali Serenity Retreat',
-            location: 'Ubud, Bali',
-            price: 1200,
-            rating: 4.8,
-            description: 'Experience the ultimate serene getaway in the heart of Bali. This 7-day retreat combines yoga sessions, traditional spa treatments, and visits to ancient temples. Perfect for slow-travel enthusiasts and spiritual seekers.',
-            images: [
-              'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=1200',
-              'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=600'
-            ],
-            highlights: ['Daily Zen Yoga & Meditation', 'Guided Ubud Monkey Forest Visit', 'Traditional 2-Hour Balinese Spa', 'Chef-led Organic Cooking Class', 'Water Temple Purification Ceremony'],
-            duration: '7 Days / 6 Nights',
-            locations: [
-              { name: 'Ubud Village (Start)', lat: -8.5069, lng: 115.2625 },
-              { name: 'Tirta Empul Water Temple', lat: -8.4116, lng: 115.2897 },
-              { name: 'Tegallalang Rice Terraces', lat: -8.4350, lng: 115.2789 },
-              { name: 'Mount Batur Base', lat: -8.2417, lng: 115.3858 }
-            ]
-          },
-          '2': {
-            title: 'Swiss Alps Expedition',
-            location: 'Zermatt, Switzerland',
-            price: 2500,
-            rating: 4.9,
-            description: 'Conquer the majestic peaks of Switzerland. This adventure takes you through the heart of the Alps, offering breathtaking views, high-altitude hiking, and cozy stays in mountain chalets.',
-            images: [
-              'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=1200',
-              'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600'
-            ],
-            highlights: ['Matterhorn Summit Views', 'Glacier Express Train Ride', 'Alpine Village Exploration', 'Gourmet Fondue Experience', 'Mountain Biking Downhill Trails'],
-            duration: '5 Days / 4 Nights',
-            locations: [
-              { name: 'Zermatt Village', lat: 46.0207, lng: 7.7491 },
-              { name: 'Gornergrat Railway', lat: 45.9833, lng: 7.7833 },
-              { name: 'Sunnegga Lookout', lat: 46.0167, lng: 7.7667 },
-              { name: 'The Matterhorn', lat: 45.9763, lng: 7.6586 }
-            ]
-          },
-          '3': {
-            title: 'Kyoto Cultural Journey',
-            location: 'Kyoto, Japan',
-            price: 1800,
-            rating: 4.7,
-            description: 'Dive deep into the rich traditions of Japan. Visit stunning golden pavilions, participate in authentic tea ceremonies, and walk through the iconic Fushimi Inari gates.',
-            images: [
-              'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=1200',
-              'https://images.unsplash.com/photo-1490806678282-46289ba80e8e?auto=format&fit=crop&q=80&w=600'
-            ],
-            highlights: ['Private Tea Ceremony', 'Arashiyama Bamboo Grove Walk', 'Geisha District Evening Tour', 'Zen Garden Meditation', 'Traditional Kaiseki Dinner'],
-            duration: '6 Days / 5 Nights',
-            locations: [
-              { name: 'Kyoto Station', lat: 34.9858, lng: 135.7588 },
-              { name: 'Fushimi Inari-taisha', lat: 34.9671, lng: 135.7727 },
-              { name: 'Kinkaku-ji', lat: 35.0394, lng: 135.7292 },
-              { name: 'Arashiyama Bamboo Grove', lat: 35.0158, lng: 135.6720 },
-              { name: 'Gion District', lat: 35.0037, lng: 135.7750 }
-            ]
-          },
-          '4': {
-            title: 'Amalfi Coast Luxury',
-            location: 'Positano, Italy',
-            price: 3200,
-            rating: 4.9,
-            description: 'Indulge in Italian luxury along the most beautiful coastline in the world. Stunning cliffside views, private boat tours, and Michelin-starred dining await.',
-            images: [
-              'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&q=80&w=1200',
-              'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&q=80&w=600'
-            ],
-            highlights: ['Private Boat Tour to Capri', 'Positano Sunset Dining', 'Limoncello Workshop', 'Pompeii Guided Vist', 'Luxury Cliffside Resort Stay'],
-            duration: '5 Days / 4 Nights',
-            locations: [
-              { name: 'Naples Airport', lat: 40.8844, lng: 14.2908 },
-              { name: 'Pompeii Excavation Site', lat: 40.7489, lng: 14.4848 },
-              { name: 'Positano Village', lat: 40.6281, lng: 14.4850 },
-              { name: 'Amalfi Town', lat: 40.6333, lng: 14.6000 },
-              { name: 'Island of Capri', lat: 40.5500, lng: 14.2333 }
-            ]
-          }
-        };
-
-        const baseTour = fallbackData[id || ''] || fallbackData['1'];
-        setTour({
-          id: id || '1',
-          ...baseTour,
-          itinerary: [
-            { day: 1, title: 'Arrival & Welcome Dinner', description: 'Arrive and transfer to our luxury retreat. Enjoy a traditional welcome ceremony and a multi-course organic dinner under the stars.' },
-            { day: 2, title: 'Local Exploration', description: 'Guided tour of the most iconic local landmarks and cultural sites.' },
-            { day: 3, title: 'Nature & Adventure', description: 'Immerse yourself in the natural beauty of the region with guided hikes and activities.' },
-            { day: 4, title: 'Wellness & Spa', description: 'A day dedicated to relaxation and rejuvenation with premium spa treatments.' },
-            { day: 5, title: 'Farewell & Departure', description: 'Final group breakfast and transfer back to the airport for your journey home.' }
-          ]
-        });
+        setTour(DESTINATIONS[0]);
       }
     } catch (error) {
-       console.error(error);
+      console.error("Error loading tour details:", error);
+      setTour(DESTINATIONS[0]);
     } finally {
       setIsLoading(false);
     }
@@ -148,36 +60,25 @@ export const TourDetailsPage = () => {
       return;
     }
 
-    try {
-      const bookingData = {
-        userId: currUser.uid || currUser.username,
-        userName: currUser.displayName || currUser.username,
-        packageId: tour.id,
-        packageName: tour.title,
-        guests: guests,
-        totalAmount: tour.price * guests,
-        status: 'confirmed',
-        travelDate: travelDate,
-        type: 'tour',
-        createdAt: new Date().toISOString()
-      };
+    const bookingData = {
+      userId: currUser.uid || currUser.username,
+      userName: currUser.displayName || currUser.username,
+      packageId: tour.id,
+      packageName: tour.title,
+      guests: guests,
+      totalAmount: tour.price * guests,
+      travelDate: travelDate,
+      type: 'tour' as const,
+    };
 
-      await addDoc(collection(db, 'bookings'), bookingData);
-      
-      toast.success('Tour booked successfully! Processing payment...');
-      setTimeout(() => {
-        navigate('/payment-success');
-      }, 1500);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to process booking');
-    }
+    setPendingBooking(bookingData);
+    setIsPaymentOpen(true);
   };
 
   if (isLoading) return <div className="pt-24 min-h-screen flex items-center justify-center dark:text-white">Loading your adventure...</div>;
 
   return (
-    <div className="pt-16 pb-24 min-h-screen">
+    <div className="pt-16 pb-24 min-h-screen bg-slate-950 text-white selection:bg-amber-400 selection:text-black">
       {/* Hero Carousel */}
       <div className="relative h-[75vh] overflow-hidden group">
         <AnimatePresence mode="wait">
@@ -187,12 +88,13 @@ export const TourDetailsPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0"
+            className="absolute inset-0 bg-slate-900"
           >
             <img 
               src={tour.images?.[currentImageIndex] || tour.image}  
-              className="w-full h-full object-cover shadow-2xl" 
+              className="w-full h-full object-cover shadow-2xl bg-slate-900 text-slate-500" 
               alt={`${tour.title} - ${currentImageIndex + 1}`}
+              onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=1200'; }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
           </motion.div>
@@ -265,7 +167,7 @@ export const TourDetailsPage = () => {
                   <div>
                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400 mb-8 font-mono">Highlights</p>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {tour.highlights?.map((h: string, i: number) => (
+                        {(tour.highlights || tour.experiences || [])?.map((h: string, i: number) => (
                           <div key={i} className="flex items-center space-x-4 p-5 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-all group">
                             <div className="bg-sky-500/20 p-2 rounded-xl text-sky-400 group-hover:scale-110 transition-transform">
                               <CheckCircle2 size={24} />
@@ -368,6 +270,119 @@ export const TourDetailsPage = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Immersive weather section, estimated budget page, hotel recommendations and reviews */}
+                  {/* Live Alpine/Tropical Weather Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8">
+                       <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 font-mono">LIVE CLIMATE PREVIEW</span>
+                       <h4 className="text-xl font-bold text-white mt-1 mb-6 flex items-center gap-1.5">
+                         <Compass size={18} className="text-sky-400 rotate-45" /> Current Weather Forecast
+                       </h4>
+                       <div className="grid grid-cols-3 gap-4 text-center">
+                         {[
+                           { day: 'Today', temp: '16°C', cond: 'Sunny Peaks', icon: '☀️' },
+                           { day: 'Tomorrow', temp: '14°C', cond: 'Soft Meadow', icon: '⛅' },
+                           { day: 'Friday', temp: '12°C', cond: 'Clear Frost', icon: '❄️' }
+                         ].map((w, idx) => (
+                           <div key={idx} className="bg-white/5 p-4 rounded-3xl border border-white/5">
+                             <span className="text-slate-400 text-xs font-medium block mb-2">{w.day}</span>
+                             <span className="text-2xl mt-1 block">{w.icon}</span>
+                             <span className="text-lg font-black text-white mt-2 block">{w.temp}</span>
+                             <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider block mt-1">{w.cond}</span>
+                           </div>
+                         ))}
+                       </div>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8">
+                       <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 font-mono">ESTIMATED TOUR BUDGET</span>
+                       <h4 className="text-xl font-bold text-white mt-1 mb-6">Financial Allocation Plan</h4>
+                       <div className="space-y-4">
+                         {[
+                           { item: 'Luxury Chauffeur Service', percent: 25, val: '₹25,000' },
+                           { item: 'Bespoke Private Chalet Stay', percent: 55, val: '₹55,000' },
+                           { item: 'Gourmet Organic Dining Out', percent: 20, val: '₹20,000' }
+                         ].map((b, idx) => (
+                           <div key={idx} className="space-y-1">
+                             <div className="flex justify-between items-center text-xs font-bold text-white/70">
+                               <span>{b.item}</span>
+                               <span className="text-amber-400">{b.val}</span>
+                             </div>
+                             <div className="h-2 w-full bg-slate-100/5 rounded-full overflow-hidden">
+                               <div className="h-full bg-amber-500" style={{ width: `${b.percent}%` }} />
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Hotel recommendations with real-time reviews */}
+                  <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
+                    <div>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 font-mono">EXECUTIVE SELECTION</span>
+                       <h4 className="text-2xl font-black text-white tracking-tight mt-1">Recommended Local Lodging</h4>
+                       <p className="text-xs text-white/40 mt-1">Handpicked resorts containing private carbon-friendly thermal structures.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { name: 'The Matterhorn Peak Chalet', rate: '4.9', cost: '₹35,000 / night', img: 'https://images.unsplash.com/photo-1551882547-ff43c63efe81?auto=format&fit=crop&q=80&w=400' },
+                        { name: 'Azure Grand Alpine Spa Resort', rate: '4.8', cost: '₹40,000 / night', img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=400' }
+                      ].map((h, i) => (
+                        <div key={i} className="bg-white/5 border border-white/5 rounded-3xl overflow-hidden group hover:border-amber-500/20 transition-all cursor-pointer">
+                          <div className="h-40 overflow-hidden relative bg-slate-900 shrink-0">
+                            <img 
+                              src={h.img} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition bg-slate-900 text-slate-500" 
+                              alt={h.name} 
+                              onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=800'; }}
+                            />
+                            <div className="absolute top-4 right-4 bg-amber-500 text-black font-black text-[9px] py-1 px-3 rounded-full uppercase">
+                              ★ {h.rate} RATED
+                            </div>
+                          </div>
+                          <div className="p-5">
+                             <h5 className="font-bold text-white group-hover:text-amber-400 transition">{h.name}</h5>
+                             <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+                                <span className="text-xs font-bold text-slate-400">Standard Suite</span>
+                                <span className="text-xs font-black text-amber-400">{h.cost}</span>
+                             </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Users feedback local comments */}
+                  <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8">
+                    <div className="flex justify-between items-end border-b border-white/10 pb-6">
+                       <div>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 font-mono">EXPLORER FEEDBACK</span>
+                          <h4 className="text-2xl font-black text-white tracking-tight mt-1">Authentic Member Reviews</h4>
+                       </div>
+                       <Badge className="bg-sky-500 text-white font-black text-xs h-8 px-4 rounded-xl">Verified Travelers</Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       {[
+                         { user: 'Sarah Jenkins', loc: 'Vancouver, CA', desc: 'An absolutely remarkable experience. The guide was exceptionally knowledgeable, handling alpine logistics flawlessly. Every penny was worth it! 10/10.', score: 5 },
+                         { user: 'Liam Peterson', loc: 'Berlin, DE', desc: 'Outstanding view from the Sunnegga Lookout, and the traditional gourmet fondue meal was stellar. Will definitely book another expedition through SmartTour.', score: 5 }
+                       ].map((rev, i) => (
+                         <div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
+                            <div className="flex items-center gap-3">
+                               <div className="w-8 h-8 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">{rev.user[0]}</div>
+                               <div>
+                                  <span className="font-bold text-white text-xs block leading-none">{rev.user}</span>
+                                  <span className="text-[9px] text-white/40 mt-1 block">{rev.loc}</span>
+                               </div>
+                            </div>
+                            <p className="text-xs text-white/60 leading-relaxed font-light italic">"{rev.desc}"</p>
+                            <div className="flex text-amber-400 text-xs">★★★★★</div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -396,12 +411,12 @@ export const TourDetailsPage = () => {
           <aside className="relative">
             <div className="sticky top-28 space-y-8">
               <Card className="rounded-[3rem] border-white/10 bg-slate-900/60 backdrop-blur-3xl shadow-2xl overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-full h-1 bg-sky-400" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-amber-400" />
                 <CardContent className="p-10">
                   <div className="flex items-end justify-between mb-10 pb-6 border-b border-white/10">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Per Person</p>
-                      <p className="text-4xl font-bold text-white tracking-tighter">${tour.price}</p>
+                      <p className="text-4xl font-black text-white tracking-tighter">₹{tour.price ? tour.price.toLocaleString('en-IN') : '0'}</p>
                     </div>
                   </div>
 
@@ -444,14 +459,14 @@ export const TourDetailsPage = () => {
                     <div className="pt-6 border-t border-white/10">
                       <div className="flex justify-between items-center mb-6">
                         <p className="text-lg font-bold text-white/40">Total Amount</p>
-                        <p className="text-3xl font-bold text-sky-400 tracking-tighter">${tour.price * guests}</p>
+                        <p className="text-3xl font-black text-amber-400 tracking-tighter">₹{(tour.price * guests).toLocaleString('en-IN')}</p>
                       </div>
                     </div>
                   </div>
 
                   <Button 
                     onClick={handleBooking}
-                    className="w-full h-16 rounded-[1.5rem] travel-gradient text-lg font-black uppercase tracking-[0.1em] shadow-[0_20px_50px_rgba(14,165,233,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-slate-950 text-lg font-black uppercase tracking-[0.1em] shadow-[0_20px_50px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all border-none"
                   >
                     Proceed to Booking
                   </Button>
@@ -468,6 +483,13 @@ export const TourDetailsPage = () => {
           </aside>
         </div>
       </div>
+      {pendingBooking && (
+        <PaymentModal
+          isOpen={isPaymentOpen}
+          onClose={() => setIsPaymentOpen(false)}
+          bookingData={pendingBooking}
+        />
+      )}
     </div>
   );
 };
