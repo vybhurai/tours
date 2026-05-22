@@ -19,9 +19,9 @@ import { ThemeProvider } from 'next-themes';
 function App() {
   return (
     // @ts-ignore
-    <ThemeProvider attribute="class" defaultTheme="dark">
+    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
       <Router>
-        <div className="flex flex-col min-h-screen bg-white dark:gradient-bg text-slate-900 dark:text-white transition-colors duration-300">
+        <div className="flex flex-col min-h-screen bg-slate-950 dark:gradient-bg text-white transition-colors duration-300">
           <Navbar />
           <main className="flex-grow">
             <Routes>
